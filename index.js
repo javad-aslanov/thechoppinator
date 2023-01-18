@@ -2,6 +2,11 @@ let maxbp = [];
 let minNumOfEmpty = Infinity;
 let mostEfficientPer = null;
 let bins = [];
+
+const roundToHundredth = (value) => {
+  return Number(value.toFixed(2));
+};
+
 function uniqueId() {
   return parseInt(
     Math.ceil(Math.random() * Date.now())
@@ -11,24 +16,103 @@ function uniqueId() {
   );
 }
 
-function binsNoSet(arr, iterations, squares) {}
+function getNPermutations(repeatedArr) {
+  const arr = [];
+  const permutations = [];
+  for (let index = 0; index < repeatedArr.length; index++) {
+    const el = repeatedArr[index];
+    const quantity = el.quantity;
+    const value = el.value;
+    for (let j = 0; j < quantity; j++) {
+      arr.push(value);
+    }
+  }
+  permutations.push(arr);
+  for (let i = 0; i < arr.length; i++) {
+    arr[i].reverse();
+    permutations.push(arr);
+  }
+  return permutations;
+}
 
-// function printBin(arr, iterations, squares) {
-//   const numofempty = checkPermutation(arr.concat(squares));
-//   if (numofempty < minNumOfEmpty) {
-//     minNumOfEmpty = numofempty;
-//     mostEfficientPer = arr.concat(squares);
-//   }
+function calculateBestPermutation(
+  distinctArr,
+  squaresArr,
+  repeatedArr,
+  bigpiece
+) {
+  let constReps = getNPermutations(repeatedArr);
+  bigpiece = [bigpiece];
 
-//   if (iterations == arr.length) {
-//     return;
-//   } else {
-//     const temp = JSON.parse(JSON.stringify(arr));
-//     temp[iterations].reverse();
-//     printBin(arr, iterations + 1, squares);
-//     printBin(temp, iterations + 1, squares);
-//   }
-// }
+  let permutationsOfDistincts = [];
+
+  permutationsOfDistincts = printBin(distinctArr, 0, permutationsOfDistincts);
+
+  // squares may and may not exist, it doesn't really matter since permutations don't change (squares don't flip)
+
+  // if distinct permutations (of quantity 1) exist and repeated ones don't
+
+  if (permutationsOfDistincts === undefined && constReps.length !== 0) {
+    for (let i = 0; i < constReps.length; i++) {
+      const permutation = bigpiece.concat(constReps[i]).concat(squaresArr);
+      let permutationResult = checkPermutation(permutation);
+      if (permutationResult < minNumOfEmpty) {
+        minNumOfEmpty = permutationResult;
+        mostEfficientPer = permutation;
+      }
+    }
+  }
+
+  // if distinct permutations don't exist and repeated ones do.
+
+  if (permutationsOfDistincts === undefined && constReps.length > 0) {
+    for (let i = 0; i < constReps.length; i++) {
+      const permutation = bigpiece.concat(constReps[i]).concat(squaresArr);
+      let permutationResult = checkPermutation(permutation);
+      if (permutationResult < minNumOfEmpty) {
+        minNumOfEmpty = permutationResult;
+        mostEfficientPer = permutation;
+      }
+    }
+  }
+
+  // if both of them exist
+
+  if (permutationsOfDistincts !== undefined && constReps.length !== 0) {
+    for (let i = 0; i < constReps.length; i++) {
+      for (let j = 0; j < permutationsOfDistincts.length; j++) {
+        const permutation = bigpiece
+          .concat(constReps[i])
+          .concat(permutationsOfDistincts[j])
+          .concat(squaresArr);
+        let permutationResult = checkPermutation(permutation);
+        if (permutationResult < minNumOfEmpty) {
+          minNumOfEmpty = permutationResult;
+          mostEfficientPer = permutation;
+        }
+      }
+    }
+  }
+}
+
+function printBin(arr, iterations, finalArr) {
+  //   const numofempty = checkPermutation(arr.concat(squares));
+  //   if (numofempty < minNumOfEmpty) {
+  //     minNumOfEmpty = numofempty;
+  //     mostEfficientPer = arr.concat(squares);
+  //   }
+
+  if (iterations == arr.length) return;
+  else {
+    const temp = JSON.parse(JSON.stringify(arr));
+    temp[iterations].reverse();
+    finalArr.push(arr);
+    finalArr.push(temp);
+    printBin(arr, iterations + 1);
+    printBin(temp, iterations + 1);
+  }
+  return finalArr;
+}
 
 let canvas = document.getElementsByTagName("canvas")[0];
 
@@ -62,31 +146,31 @@ class GridRectangle {
   }
 
   setTopLeft(topLeft) {
-    this.topLeft = topLeft;
+    this.topLeft = topLeft.map((x) => roundToHundredth(x));
   }
 
   setTopRight(topRight) {
-    this.topRight = topRight;
+    this.topRight = topRight.map((x) => roundToHundredth(x));
   }
   setBottomLeft(bottomLeft) {
-    this.bottomLeft = bottomLeft;
+    this.bottomLeft = bottomLeft.map((x) => roundToHundredth(x));
   }
   setBottomRight(bottomRight) {
-    this.bottomRight = bottomRight;
+    this.bottomRight = bottomRight.map((x) => roundToHundredth(x));
   }
   setWidth(width) {
-    this.width = width;
+    this.width = roundToHundredth(width);
   }
 
   setHeight(height) {
-    this.height = height;
+    this.height = roundToHundredth(height);
   }
 
   setIsEmpty(isEmpty) {
     this.isEmpty = isEmpty;
   }
   setArea(area) {
-    this.area = area;
+    this.area = roundToHundredth(area);
   }
 
   allvalues() {
@@ -177,6 +261,8 @@ function main(
   let empty_spaces = [];
 
   let finishedarr = [];
+
+  let area = bigpiece.area;
 
   function isEqual(a, b) {
     return a.id === b.id;
@@ -318,26 +404,26 @@ function main(
     if (isBp) {
       if (maxAreaRect.width >= maxAreaRect.height) {
         // new height (width doesn't change)
-        bigpiece.height = bigpiece.height - maxAreaRect.height;
+        bigpiece.setHeight(bigpiece.height - maxAreaRect.height);
         // new bigpiece area
         bigpiece.recalcArea();
 
         // move it down
-        bigpiece.topLeft = maxAreaRect.bottomLeft;
+        bigpiece.setTopLeft(maxAreaRect.bottomLeft);
         // logic i can't explain. only draw
-        bigpiece.topRight = [
+        bigpiece.setTopRight([
           bigpiece.topRight[constants.x],
           maxAreaRect.bottomRight[constants.y],
-        ];
+        ]);
       } else {
-        bigpiece.width = bigpiece.width - maxAreaRect.width;
+        bigpiece.setWidth(bigpiece.width - maxAreaRect.width);
         bigpiece.recalcArea();
 
-        bigpiece.topLeft = maxAreaRect.topRight;
-        bigpiece.bottomLeft = [
+        bigpiece.setTopLeft(maxAreaRect.topRight);
+        bigpiece.setBottomLeft([
           maxAreaRect.topRight[constants.x],
           bigpiece.bottomLeft[constants.y],
-        ];
+        ]);
       }
     }
 
@@ -353,6 +439,7 @@ function main(
 
   function findViableEmptySpace(rect) {
     const newarr = [];
+    const oldarr = [];
     for (let i = 0; i < empty_spaces.length; i++) {
       const element = empty_spaces[i];
       if (isTooSmall(element, rect)) {
@@ -369,7 +456,11 @@ function main(
         minel = element;
       }
     }
-
+    if (minel === null) {
+      console.log(rect.allvalues(), "rect");
+      console.log("empty spaces");
+      empty_spaces.forEach((x) => console.log(x.allvalues()));
+    }
     return minel;
   }
 
@@ -388,9 +479,11 @@ function main(
   }
 
   function run() {
+    area = bigpiece.area;
     while (rectangles.length > 0) {
       const maxAreaRect = findMaxArea(rectangles);
       const viableEmptySpace = findViableEmptySpace(maxAreaRect);
+
       // if there is nowhere the max area rectangle can fit
       if (viableEmptySpace == null) {
         // place it top left in two different directions.
@@ -422,8 +515,8 @@ function createRectanglesFromInput(array) {
       [-1, -1],
       [-1, -1],
       [-1, -1],
-      parseInt(array[i][0]),
-      parseInt(array[i][1]),
+      parseFloat(array[i][0]),
+      parseFloat(array[i][1]),
       false
     );
     finalarr = [...finalarr, element];
@@ -478,13 +571,13 @@ $(document).ready(function () {
       x++;
       $(wrapper).append(
         `<div>
-        <label for="width">Width</label>
-        <input id="width" class="width" type="number" name="mytext[]"/>
-        <label for="height">Height</label>
-        <input id="height "class="height"  type="number" name="mytext[]"/>
-        <label for="quantity">Quantity</label>
-        <input id="quantity" class="quantity"  type="number" name="mytext[]"/>
-        <a href="#" class="delete">Delete</a></div>`
+        <label for="width" class="form-label">Width</label>
+        <input id="width form-control" class="width form-control" type="number" name="mytext[]"/>
+        <label for="height" class="form-label">Height</label>
+        <input id="height "class="height form-control"  type="number" name="mytext[]"/>
+        <label for="quantity" class="form-label">Quantity</label>
+        <input id="quantity" class="quantity form-control"  type="number" name="mytext[]"/>
+        <button class="delete btn btn-danger">Delete</button></div>`
       ); //add input box
     } else {
       alert("You Reached the limits");
@@ -497,46 +590,69 @@ $(document).ready(function () {
     x--;
   });
   $(wrapper).on("click", ".submitbtn", function (e) {
+    // extract all the inputted data
+    let widths = document.getElementsByClassName("width");
+    let heights = document.getElementsByClassName("height");
+    let quantities = document.getElementsByClassName("quantity");
+
     e.preventDefault();
     $(wrapper).on("click", ".clearbtn", function (e) {
       e.preventDefault();
-      clearBoard();
+      location.reload();
     });
-
-    // extract all the inputted data
-    const widths = document.getElementsByClassName("width");
-    const heights = document.getElementsByClassName("height");
-    const quantities = document.getElementsByClassName("quantity");
 
     // shuffle the widths and heights ....
 
-    // all possible permutations with shuffling of all arrays including the stock.
-    const values = [];
-    const squares = [];
-    for (let i = 0; i < widths.length; i++) {
-      const w = parseInt(widths[i].value);
-      const h = parseInt(heights[i].value);
+    // all possible permutations with shuffling of all arrays excluding the stock.
 
+    const distinctArr = [];
+    const repeatedArr = [];
+    const squares = [];
+    let bigpiece = undefined;
+    for (let i = 0; i < widths.length; i++) {
+      const w = parseFloat(widths[i].value);
+      const h = parseFloat(heights[i].value);
       if (w === h) {
         if (i !== 0) {
-          for (let j = 0; j < quantities[i - 1].value; j++) {
+          const quantity = quantities[i - 1].value;
+          for (let index = 0; index < parseInt(quantity); index++) {
             squares.push([w, h]);
           }
         } else {
-          values.push([w, h]);
+          bigpiece = [w, h];
         }
       } else {
         if (i !== 0) {
-          for (let j = 0; j < quantities[i - 1].value; j++) {
-            values.push([w, h]);
+          const quantity = quantities[i - 1].value;
+          if (quantity > 1) {
+            repeatedArr.push({ quantity: parseInt(quantity), value: [w, h] });
+          } else {
+            distinctArr.push([w, h]);
           }
         } else {
-          values.push([w, h]);
+          bigpiece = [w, h];
         }
       }
     }
-    printBin(values, 1, squares);
+    calculateBestPermutation(distinctArr, squares, repeatedArr, bigpiece);
     clearBoard();
     checkPermutation(mostEfficientPer);
+    bparea = bigpiece[0] * bigpiece[1];
+
+    // most efficient per(mutation) area
+    marea =
+      mostEfficientPer.reduce(
+        (accumulator, currentValue) =>
+          accumulator + currentValue[0] * currentValue[1],
+        0
+      ) - bparea;
+
+    document.getElementById(
+      "boardyield"
+    ).innerText = `Board Area: ${bparea}, Area used: ${marea}, Total Yield: ${
+      (marea / bparea) * 100
+    }%`;
+
+    console.log(bparea, marea);
   });
 });

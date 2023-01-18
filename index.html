@@ -8,7 +8,26 @@
     <meta name="description" content="" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="" />
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN"
+      crossorigin="anonymous"
+    ></script>
+
     <style>
+      body {
+        padding-top: 0.3rem;
+        padding-bottom: 0.2rem;
+        padding-left: 0.2rem;
+      }
+
       canvas {
         border: 1px solid black;
       }
@@ -23,25 +42,45 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
   </head>
   <body>
+    <h1>Cutting scheme:</h1>
+
+    <h1 id="boardyield"></h1>
+
     <canvas id="canvas"> </canvas>
 
     <div class="container1">
       <div>
         <h2>Stock</h2>
-        <label for="width">Width</label>
-        <input id="width" class="width" type="number" name="mytext[]" />
-        <label for="height">Height</label>
-        <input id="height" class="height" type="number" name="mytext[]" />
+
+        <label for="width" class="form-label">Width</label>
+        <input
+          id="width"
+          class="width form-control"
+          type="number"
+          name="mytext[]"
+        />
+
+        <label for="height" class="form-label">Height</label>
+        <input
+          id="height"
+          class="height form-control sm"
+          type="number"
+          name="mytext[]"
+        />
+
         <h2>Add pieces</h2>
-        <button class="add_form_field">
+
+        <button class="add_form_field btn btn-success">
           Add New Field &nbsp;
           <span style="font-size: 16px; font-weight: bold">+ </span>
         </button>
-        <button class="submitbtn">
+
+        <button class="submitbtn btn btn-primary">
           RUN! &nbsp;
           <span style="font-size: 16px; font-weight: bold">⌛️</span>
         </button>
-        <button class="clearbtn">
+
+        <button class="clearbtn btn btn-danger">
           CLEAR! &nbsp;
           <span style="font-size: 16px; font-weight: bold">🧹</span>
         </button>
