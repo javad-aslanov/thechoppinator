@@ -96,12 +96,6 @@ function calculateBestPermutation(
 }
 
 function printBin(arr, iterations, finalArr) {
-  //   const numofempty = checkPermutation(arr.concat(squares));
-  //   if (numofempty < minNumOfEmpty) {
-  //     minNumOfEmpty = numofempty;
-  //     mostEfficientPer = arr.concat(squares);
-  //   }
-
   if (iterations == arr.length) return;
   else {
     const temp = JSON.parse(JSON.stringify(arr));
@@ -652,7 +646,5 @@ $(document).ready(function () {
     ).innerText = `Board Area: ${bparea}, Area used: ${marea}, Total Yield: ${
       (marea / bparea) * 100
     }%`;
-
-    console.log(bparea, marea);
   });
 });
